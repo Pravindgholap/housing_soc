@@ -17,28 +17,38 @@ def financial_dashboard(request):
     current_month = timezone.now().month
     current_year = timezone.now().year
     
+    # Filter by society
+    if request.user.society:
+        base_filter = {'created_by__society': request.user.society}
+    else:
+        base_filter = {}
+    
     total_income = Transaction.objects.filter(
-        transaction_type='income'
+        transaction_type='income',
+        **base_filter
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
     total_expenses = Transaction.objects.filter(
-        transaction_type='expense'
+        transaction_type='expense',
+        **base_filter
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
     monthly_income = Transaction.objects.filter(
         transaction_type='income',
         transaction_date__month=current_month,
-        transaction_date__year=current_year
+        transaction_date__year=current_year,
+        **base_filter
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
     monthly_expenses = Transaction.objects.filter(
         transaction_type='expense',
         transaction_date__month=current_month,
-        transaction_date__year=current_year
+        transaction_date__year=current_year,
+        **base_filter
     ).aggregate(Sum('amount'))['amount__sum'] or 0
     
-    recent_transactions = Transaction.objects.all()[:10]
-    active_budgets = Budget.objects.filter(is_active=True)
+    recent_transactions = Transaction.objects.filter(**base_filter)[:10]
+    active_budgets = Budget.objects.filter(is_active=True, created_by__society=request.user.society) if request.user.society else Budget.objects.filter(is_active=True)
     
     context = {
         'total_income': total_income,
@@ -59,7 +69,11 @@ def transaction_list(request):
         messages.error(request, 'Access denied!')
         return redirect('dashboard:home')
     
-    transactions = Transaction.objects.all()
+    # Filter transactions by society
+    if request.user.society:
+        transactions = Transaction.objects.filter(created_by__society=request.user.society)
+    else:
+        transactions = Transaction.objects.all()
     
     # Filter by type
     transaction_type = request.GET.get('type')
@@ -71,7 +85,14 @@ def transaction_list(request):
     if category_id:
         transactions = transactions.filter(category_id=category_id)
     
-    categories = TransactionCategory.objects.filter(is_active=True)
+    # Filter categories by society transactions
+    if request.user.society:
+        categories = TransactionCategory.objects.filter(
+            is_active=True,
+            transaction__created_by__society=request.user.society
+        ).distinct()
+    else:
+        categories = TransactionCategory.objects.filter(is_active=True)
     
     return render(request, 'financial/transaction_list.html', {
         'transactions': transactions,

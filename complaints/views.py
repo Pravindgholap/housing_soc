@@ -2,15 +2,24 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.db import models
 from .models import Complaint, ComplaintUpdate, ComplaintCategory
 from .forms import ComplaintForm, ComplaintUpdateForm, ComplaintStatusForm
 
 @login_required
 def complaint_list(request):
     if request.user.user_type == 'admin':
-        complaints = Complaint.objects.all()
+        # Filter by society for society admins
+        if request.user.society:
+            complaints = Complaint.objects.filter(created_by__society=request.user.society)
+        else:
+            complaints = Complaint.objects.all()
     else:
-        complaints = Complaint.objects.filter(created_by=request.user)
+        # Show complaints from same society for owners/tenants
+        complaints = Complaint.objects.filter(
+            models.Q(created_by=request.user) | 
+            models.Q(created_by__society=request.user.society)
+        )
     
     # Filter by status if provided
     status_filter = request.GET.get('status')

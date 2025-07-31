@@ -7,7 +7,14 @@ from .forms import NoticeForm, NoticeCategoryForm
 
 @login_required
 def notice_list(request):
-    notices = Notice.objects.filter(is_active=True)
+    # Filter notices by society
+    if request.user.society:
+        notices = Notice.objects.filter(
+            is_active=True,
+            created_by__society=request.user.society
+        )
+    else:
+        notices = Notice.objects.filter(is_active=True)
     
     # Filter by category if provided
     category_filter = request.GET.get('category')
@@ -18,7 +25,14 @@ def notice_list(request):
     for notice in notices:
         NoticeReadStatus.objects.get_or_create(notice=notice, user=request.user)
     
-    categories = NoticeCategory.objects.filter(is_active=True)
+    # Filter categories by society notices
+    if request.user.society:
+        categories = NoticeCategory.objects.filter(
+            is_active=True,
+            notice__created_by__society=request.user.society
+        ).distinct()
+    else:
+        categories = NoticeCategory.objects.filter(is_active=True)
     
     return render(request, 'notices/notice_list.html', {
         'notices': notices,

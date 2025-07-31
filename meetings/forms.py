@@ -6,7 +6,7 @@ User = get_user_model()
 
 class MeetingForm(forms.ModelForm):
     attendees = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(is_active=True),
+        queryset=None,
         widget=forms.CheckboxSelectMultiple,
         required=False
     )
@@ -21,7 +21,18 @@ class MeetingForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Filter attendees by society
+        if user and user.society:
+            self.fields['attendees'].queryset = User.objects.filter(
+                is_active=True, 
+                society=user.society
+            )
+        else:
+            self.fields['attendees'].queryset = User.objects.filter(is_active=True)
+            
         for field_name, field in self.fields.items():
             if field_name != 'attendees':
                 if not hasattr(field.widget, 'attrs'):

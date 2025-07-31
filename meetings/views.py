@@ -7,7 +7,11 @@ from .forms import MeetingForm, MeetingMinutesForm, MeetingDocumentForm
 
 @login_required
 def meeting_list(request):
-    meetings = Meeting.objects.all()
+    # Filter meetings by society
+    if request.user.society:
+        meetings = Meeting.objects.filter(created_by__society=request.user.society)
+    else:
+        meetings = Meeting.objects.all()
     
     # Filter by status if provided
     status_filter = request.GET.get('status')
@@ -26,7 +30,7 @@ def create_meeting(request):
         return redirect('meetings:meeting_list')
     
     if request.method == 'POST':
-        form = MeetingForm(request.POST)
+        form = MeetingForm(request.POST, user=request.user)
         if form.is_valid():
             meeting = form.save(commit=False)
             meeting.created_by = request.user
@@ -40,7 +44,7 @@ def create_meeting(request):
             messages.success(request, 'Meeting created successfully!')
             return redirect('meetings:meeting_detail', meeting_id=meeting.id)
     else:
-        form = MeetingForm()
+        form = MeetingForm(user=request.user)
     
     return render(request, 'meetings/create_meeting.html', {'form': form})
 

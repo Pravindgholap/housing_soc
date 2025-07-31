@@ -40,7 +40,12 @@ def user_list(request):
         messages.error(request, 'Access denied!')
         return redirect('dashboard:home')
     
-    users = User.objects.all().order_by('wing', 'flat_number')
+    # Filter users by society if user is society admin
+    if request.user.society:
+        users = User.objects.filter(society=request.user.society).order_by('wing', 'flat_number')
+    else:
+        users = User.objects.all().order_by('wing', 'flat_number')
+        
     return render(request, 'accounts/user_list.html', {'users': users})
 
 @login_required

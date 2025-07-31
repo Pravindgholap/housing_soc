@@ -3,9 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.template.loader import get_template
+from django.db import models
+from django.utils import timezone
 from xhtml2pdf import pisa
 from .models import MaintenanceBill, Payment, MaintenanceType
 from .forms import MaintenanceBillForm, PaymentForm, MaintenanceTypeForm
+from financial.models import Transaction, TransactionCategory
 import uuid
 
 @login_required
@@ -67,6 +70,25 @@ def make_payment(request, bill_id):
             payment.bill = bill
             payment.received_by = request.user
             payment.save()
+            
+            # Create financial transaction record
+            try:
+                maintenance_category, created = TransactionCategory.objects.get_or_create(
+                    name='Maintenance Payment',
+                    defaults={'is_income': True, 'description': 'Maintenance payments from residents'}
+                )
+                
+                Transaction.objects.create(
+                    title=f'Maintenance Payment - {bill.bill_number}',
+                    description=f'Payment received from {bill.user.get_full_name() or bill.user.username} for {bill.maintenance_type.name}',
+                    amount=payment.amount,
+                    transaction_type='income',
+                    category=maintenance_category,
+                    transaction_date=payment.payment_date.date(),
+                    created_by=request.user
+                )
+            except Exception as e:
+                messages.warning(request, 'Payment recorded but financial transaction creation failed.')
             
             # Update bill status if fully paid
             total_paid = Payment.objects.filter(bill=bill).aggregate(
