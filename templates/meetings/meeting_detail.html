@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ meeting.title }}{% endblock %}
+{% block page_title %}Meeting Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h3>{{ meeting.title }}</h3>
+                    <div>
+                        <span class="badge bg-{% if meeting.status == 'completed' %}success{% elif meeting.status == 'ongoing' %}warning{% elif meeting.status == 'cancelled' %}danger{% else %}info{% endif %} fs-6">
+                            {{ meeting.get_status_display }}
+                        </span>
+                        {% if user.user_type == 'admin' %}
+                        <div class="dropdown d-inline-block ms-2">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Update Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="scheduled">
+                                        <button type="submit" class="dropdown-item">Scheduled</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="ongoing">
+                                        <button type="submit" class="dropdown-item">Ongoing</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="dropdown-item">Completed</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="dropdown-item text-danger">Cancelled</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="meeting-info mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-calendar me-2"></i><strong>Date & Time:</strong> {{ meeting.date|date:"F d, Y - g:i A" }}</p>
+                            <p><i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong> {{ meeting.location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-user me-2"></i><strong>Organized by:</strong> {{ meeting.created_by.get_full_name|default:meeting.created_by.username }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="meeting-description mb-4">
+                    <h6>Description:</h6>
+                    {{ meeting.description|linebreaks }}
+                </div>
+                
+                <div class="meeting-agenda mb-4">
+                    <h6>Agenda:</h6>
+                    {{ meeting.agenda|linebreaks }}
+                </div>
+                
+                <!-- RSVP Section -->
+                {% if user_attendance or meeting.status == 'scheduled' %}
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6>RSVP</h6>
+                        {% if user_attendance %}
+                        <p>Your response: <span class="badge bg-{% if user_attendance.response == 'accepted' %}success{% elif user_attendance.response == 'declined' %}danger{% elif user_attendance.response == 'maybe' %}warning{% else %}secondary{% endif %}">{{ user_attendance.get_response_display }}</span></p>
+                        {% endif %}
+                        
+                        {% if meeting.status == 'scheduled' %}
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <div class="btn-group" role="group">
+                                <button type="submit" name="rsvp" value="accepted" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-check me-1"></i>Accept
+                                </button>
+                                <button type="submit" name="rsvp" value="maybe" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-question me-1"></i>Maybe
+                                </button>
+                                <button type="submit" name="rsvp" value="declined" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times me-1"></i>Decline
+                                </button>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Meeting Minutes (Admin Only) -->
+                {% if user.user_type == 'admin' and minutes_form %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Meeting Minutes</h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ minutes_form.minutes }}
+                            <button type="submit" name="update_minutes" class="btn btn-primary mt-2">
+                                <i class="fas fa-save me-2"></i>Save Minutes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% elif meeting.minutes %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Meeting Minutes</h6>
+                    </div>
+                    <div class="card-body">
+                        {{ meeting.minutes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Documents Section -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Documents</h6>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#uploadForm">
+                            <i class="fas fa-plus me-1"></i>Upload
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Upload Form -->
+                        <div class="collapse mb-3" id="uploadForm">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        {{ doc_form.title }}
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        {{ doc_form.file }}
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <button type="submit" name="upload_document" class="btn btn-primary btn-sm w-100">Upload</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Documents List -->
+                        {% if documents %}
+                        <div class="list-group">
+                            {% for document in documents %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ document.title }}</strong>
+                                    <small class="text-muted d-block">Uploaded by {{ document.uploaded_by.username }} on {{ document.uploaded_at|date:"M d, Y" }}</small>
+                                </div>
+                                <a href="{{ document.file.url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No documents uploaded yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Attendance</h6>
+            </div>
+            <div class="card-body">
+                {% if attendance %}
+                <div class="attendance-list">
+                    {% for attendee in attendance %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ attendee.user.get_full_name|default:attendee.user.username }}</strong>
+                            <small class="text-muted d-block">{{ attendee.user.full_address }}</small>
+                        </div>
+                        <span class="badge bg-{% if attendee.response == 'accepted' %}success{% elif attendee.response == 'declined' %}danger{% elif attendee.response == 'maybe' %}warning{% else %}secondary{% endif %}">
+                            {{ attendee.get_response_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No attendees yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'meetings:meeting_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Meetings
+    </a>
+</div>
+{% endblock %}

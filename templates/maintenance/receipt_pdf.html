@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Payment Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .receipt-info {
+            margin-bottom: 30px;
+        }
+        .receipt-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .receipt-info td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .amount-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .amount-table th,
+        .amount-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .amount-table th {
+            background-color: #f5f5f5;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Payment Receipt</h1>
+        <h3>Housing Society Management</h3>
+    </div>
+
+    <div class="receipt-info">
+        <table>
+            <tr>
+                <td><strong>Receipt Number:</strong></td>
+                <td>{{ bill.bill_number }}</td>
+                <td><strong>Date:</strong></td>
+                <td>{{ bill.paid_at|date:"F d, Y"|default:"N/A" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Paid By:</strong></td>
+                <td>{{ bill.user.get_full_name|default:bill.user.username }}</td>
+                <td><strong>Address:</strong></td>
+                <td>{{ bill.user.full_address }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="amount-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ bill.maintenance_type.name }}</td>
+                <td>₹{{ bill.amount }}</td>
+            </tr>
+            {% if bill.late_fee > 0 %}
+            <tr>
+                <td>Late Fee</td>
+                <td>₹{{ bill.late_fee }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td>Total Amount Paid</td>
+                <td>₹{{ bill.total_amount }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if payments %}
+    <h4>Payment Details:</h4>
+    <table class="amount-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Transaction ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                <td>{{ payment.get_payment_method_display }}</td>
+                <td>₹{{ payment.amount }}</td>
+                <td>{{ payment.transaction_id|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div class="footer">
+        <p>This is a computer-generated receipt. Thank you for your payment!</p>
+        <p>Generated on {{ "now"|date:"F d, Y - g:i A" }}</p>
+    </div>
+</body>
+</html>

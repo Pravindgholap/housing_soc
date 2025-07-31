@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaints{% endblock %}
+{% block page_title %}Complaints{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Complaints</h4>
+        <p class="text-muted mb-0">Track and manage society complaints</p>
+    </div>
+    <a href="{% url 'complaints:create_complaint' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Raise Complaint
+    </a>
+</div>
+
+<!-- Filter Options -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if complaints %}
+        <div class="row">
+            {% for complaint in complaints %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title">{{ complaint.title }}</h6>
+                            <span class="badge bg-{% if complaint.priority == 'urgent' %}danger{% elif complaint.priority == 'high' %}warning{% elif complaint.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                                {{ complaint.get_priority_display }}
+                            </span>
+                        </div>
+                        
+                        <p class="card-text text-muted">{{ complaint.description|truncatewords:20 }}</p>
+                        
+                        <div class="row text-sm">
+                            <div class="col-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ complaint.created_by.username }}
+                                </small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ complaint.created_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        {% if complaint.location %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ complaint.location }}
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-{% if complaint.status == 'resolved' %}success{% elif complaint.status == 'in_progress' %}warning{% elif complaint.status == 'closed' %}secondary{% else %}danger{% endif %}">
+                                {{ complaint.get_status_display }}
+                            </span>
+                            <a href="{% url 'complaints:complaint_detail' complaint.id %}" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+            <h5>No complaints found</h5>
+            <p class="text-muted">No complaints have been raised yet.</p>
+            <a href="{% url 'complaints:create_complaint' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Raise First Complaint
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

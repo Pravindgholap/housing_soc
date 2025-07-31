@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Financial Dashboard{% endblock %}
+{% block page_title %}Financial Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Financial Summary Cards -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>₹{{ total_income|floatformat:0 }}</h4>
+                        <p class="mb-0">Total Income</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-arrow-up fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>₹{{ total_expenses|floatformat:0 }}</h4>
+                        <p class="mb-0">Total Expenses</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-arrow-down fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-{% if net_balance >= 0 %}success{% else %}danger{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>₹{{ net_balance|floatformat:0 }}</h4>
+                        <p class="mb-0">Net Balance</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-balance-scale fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>₹{{ monthly_net|floatformat:0 }}</h4>
+                        <p class="mb-0">This Month</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'financial:create_transaction' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Add Transaction
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'financial:create_budget' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-chart-pie me-2"></i>Create Budget
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'financial:transaction_list' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-list me-2"></i>View Transactions
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'financial:bank_accounts' %}" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-university me-2"></i>Bank Accounts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Transactions -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Recent Transactions</h5>
+                <a href="{% url 'financial:transaction_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>{{ transaction.title }}</td>
+                                <td>
+                                    <span class="badge bg-{{ transaction.transaction_type|yesno:'success,danger' }}">
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong class="text-{{ transaction.transaction_type|yesno:'success,danger' }}">
+                                        {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount }}
+                                    </strong>
+                                </td>
+                                <td>{{ transaction.transaction_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No transactions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Budgets -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Active Budgets</h5>
+                <a href="{% url 'financial:budget_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if active_budgets %}
+                    {% for budget in active_budgets %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>{{ budget.name }}</strong>
+                            <small class="text-muted">{{ budget.budget_utilization_percentage|floatformat:1 }}%</small>
+                        </div>
+                        <div class="progress mb-1" style="height: 8px;">
+                            <div class="progress-bar bg-{% if budget.budget_utilization_percentage > 90 %}danger{% elif budget.budget_utilization_percentage > 70 %}warning{% else %}success{% endif %}" 
+                                 style="width: {{ budget.budget_utilization_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">₹{{ budget.spent_amount }} / ₹{{ budget.total_budget }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted">No active budgets.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

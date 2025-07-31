@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Meetings{% endblock %}
+{% block page_title %}Meetings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Society Meetings</h4>
+        <p class="text-muted mb-0">View and manage society meetings</p>
+    </div>
+    {% if user.user_type == 'admin' %}
+    <a href="{% url 'meetings:create_meeting' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Schedule Meeting
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filter Options -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="ongoing" {% if status_filter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for meeting in meetings %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title">{{ meeting.title }}</h6>
+                    <span class="badge bg-{% if meeting.status == 'completed' %}success{% elif meeting.status == 'ongoing' %}warning{% elif meeting.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                        {{ meeting.get_status_display }}
+                    </span>
+                </div>
+                
+                <p class="card-text text-muted">{{ meeting.description|truncatewords:20 }}</p>
+                
+                <div class="row text-sm mb-3">
+                    <div class="col-12 mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>{{ meeting.date|date:"M d, Y - g:i A" }}
+                        </small>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ meeting.location }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-user me-1"></i>{{ meeting.created_by.username }}
+                    </small>
+                    <a href="{% url 'meetings:meeting_detail' meeting.id %}" class="btn btn-sm btn-outline-primary">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+            <h5>No meetings found</h5>
+            <p class="text-muted">No meetings have been scheduled yet.</p>
+            {% if user.user_type == 'admin' %}
+            <a href="{% url 'meetings:create_meeting' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Schedule First Meeting
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

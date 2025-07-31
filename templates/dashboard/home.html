@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Housing Society Management{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_notices }}</h4>
+                        <p class="mb-0">Active Notices</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bullhorn fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ upcoming_meetings }}</h4>
+                        <p class="mb-0">Upcoming Meetings</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.user_type == 'admin' %}
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ pending_complaints }}</h4>
+                        <p class="mb-0">Pending Complaints</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>₹{{ total_maintenance_due|floatformat:0 }}</h4>
+                        <p class="mb-0">Maintenance Due</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ my_complaints }}</h4>
+                        <p class="mb-0">My Complaints</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ my_pending_bills }}</h4>
+                        <p class="mb-0">Pending Bills</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if user.user_type == 'admin' %}
+    <!-- Recent Transactions -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Recent Transactions</h5>
+                <a href="{% url 'financial:transaction_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ transaction.title }}</strong>
+                            <small class="text-muted d-block">{{ transaction.transaction_date }}</small>
+                        </div>
+                        <span class="badge bg-{{ transaction.transaction_type|yesno:'success,danger' }}">
+                            {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No transactions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Complaints -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Recent Complaints</h5>
+                <a href="{% url 'complaints:complaint_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_complaints %}
+                    {% for complaint in recent_complaints %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ complaint.title }}</strong>
+                            <small class="text-muted d-block">{{ complaint.created_by.username }} - {{ complaint.created_at|date:"M d" }}</small>
+                        </div>
+                        <span class="badge bg-{{ complaint.priority|yesno:'danger,warning,info,secondary' }}">
+                            {{ complaint.get_priority_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No complaints yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- My Recent Bills -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>My Recent Bills</h5>
+                <a href="{% url 'maintenance:bill_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if my_recent_bills %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Bill Number</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bill in my_recent_bills %}
+                                <tr>
+                                    <td>{{ bill.bill_number }}</td>
+                                    <td>₹{{ bill.total_amount }}</td>
+                                    <td>{{ bill.due_date }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ bill.status|yesno:'success,warning,danger,secondary' }}">
+                                            {{ bill.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'maintenance:bill_detail' bill.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No bills yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'complaints:create_complaint' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Raise Complaint
+                        </a>
+                    </div>
+                    {% if user.user_type == 'admin' %}
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'maintenance:create_bill' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-file-invoice me-2"></i>Create Bill
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'notices:create_notice' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-bullhorn me-2"></i>Post Notice
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'meetings:create_meeting' %}" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-calendar-plus me-2"></i>Schedule Meeting
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

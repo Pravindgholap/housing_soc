@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Notices{% endblock %}
+{% block page_title %}Notice Board{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Notice Board</h4>
+        <p class="text-muted mb-0">Stay updated with society announcements</p>
+    </div>
+    {% if user.user_type == 'admin' %}
+    <a href="{% url 'notices:create_notice' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Post Notice
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filter Options -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for notice in notices %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 {% if notice.is_pinned %}border-warning{% endif %}">
+            {% if notice.is_pinned %}
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-thumbtack me-2"></i>Pinned Notice
+            </div>
+            {% endif %}
+            
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title">{{ notice.title }}</h6>
+                    <span class="badge" style="background-color: {{ notice.category.color }};">
+                        {{ notice.category.name }}
+                    </span>
+                </div>
+                
+                <p class="card-text">{{ notice.content|truncatewords:30 }}</p>
+                
+                <div class="row text-sm mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>{{ notice.created_by.username }}
+                        </small>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>{{ notice.created_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                </div>
+                
+                {% if notice.valid_until %}
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>Valid until: {{ notice.valid_until|date:"M d, Y" }}
+                    </small>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-{% if notice.priority == 'urgent' %}danger{% elif notice.priority == 'high' %}warning{% elif notice.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                        {{ notice.get_priority_display }}
+                    </span>
+                    <a href="{% url 'notices:notice_detail' notice.id %}" class="btn btn-sm btn-outline-primary">
+                        Read More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+            <h5>No notices found</h5>
+            <p class="text-muted">No notices have been posted yet.</p>
+            {% if user.user_type == 'admin' %}
+            <a href="{% url 'notices:create_notice' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Post First Notice
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
