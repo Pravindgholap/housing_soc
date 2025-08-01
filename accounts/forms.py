@@ -34,9 +34,13 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'phone', 'flat_number', 
-                 'wing', 'emergency_contact', 'profile_picture')
+                 'wing', 'society', 'emergency_contact', 'profile_picture')
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+        
+        # Add help text for society field
+        self.fields['society'].help_text = "Select your housing society"
+        self.fields['society'].empty_label = "Select Society"

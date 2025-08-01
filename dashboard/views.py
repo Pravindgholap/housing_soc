@@ -11,7 +11,7 @@ from financial.models import Transaction
 def home(request):
     # Check if user needs to complete profile or wait for verification
     if not request.user.society:
-        messages.warning(request, 'Please complete your profile by selecting a society.')
+        messages.warning(request, 'Please complete your profile by selecting a society from your profile page.')
         return redirect('accounts:profile')
     
     if not request.user.is_verified and request.user.user_type != 'admin':

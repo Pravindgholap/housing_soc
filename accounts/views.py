@@ -36,9 +36,17 @@ def profile(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            # If society was changed, update related access
+            if 'society' in form.changed_data:
+                messages.info(request, 'Society updated. You now have access to your new society\'s content.')
             messages.success(request, 'Profile updated successfully!')
             return redirect('accounts:profile')
+        else:
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
     else:
         form = UserProfileForm(instance=request.user)
     return render(request, 'accounts/profile.html', {'form': form})
