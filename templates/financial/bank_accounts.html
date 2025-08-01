@@ -74,3 +74,79 @@
     </div>
 </div>
 {% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}Bank Accounts{% endblock %}
+{% block page_title %}Bank Account Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Bank Account Management</h4>
+        <p class="text-muted mb-0">Manage society bank accounts</p>
+    </div>
+    <a href="{% url 'financial:create_bank_account' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Bank Account
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if accounts %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bank Name</th>
+                        <th>Account Number</th>
+                        <th>Account Type</th>
+                        <th>Branch</th>
+                        <th>IFSC Code</th>
+                        <th>Current Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td>
+                            <strong>{{ account.bank_name }}</strong>
+                        </td>
+                        <td>
+                            <span class="font-monospace">{{ account.account_number }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ account.get_account_type_display }}</span>
+                        </td>
+                        <td>{{ account.branch_name }}</td>
+                        <td>
+                            <span class="font-monospace">{{ account.ifsc_code }}</span>
+                        </td>
+                        <td>
+                            <strong class="text-{% if account.current_balance >= 0 %}success{% else %}danger{% endif %}">
+                                ₹{{ account.current_balance }}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if account.is_active %}success{% else %}secondary{% endif %}">
+                                {% if account.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-university fa-3x text-muted mb-3"></i>
+            <h5>No bank accounts found</h5>
+            <p class="text-muted">No bank accounts have been added yet.</p>
+            <a href="{% url 'financial:create_bank_account' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Bank Account
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
