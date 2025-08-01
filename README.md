@@ -14,7 +14,7 @@ Designed to **streamline maintenance, communication, and financial operations** 
 ---
 
 ## ⚙️ How to Run Locally
-```bash
+
 # 1️⃣ Clone the repository
 git clone https://github.com/Pravindgholap/housing_soc.git
 cd housing_soc
@@ -39,19 +39,22 @@ python manage.py runserver
 Access at: http://127.0.0.1:8000/
 
 🖼 Screenshots
-<p align="center">
-  <img src="screenshots/admin_dash.png" width="45%"/>
-  <img src="screenshots/user_dashboard.png" width="45%"/>
-</p>
+### Admin Dashboard
+![Admin Dashboard](screenshots/admin_dash.png)
 
-<p align="center">
-  <img src="screenshots/financial.png" width="45%"/>
-  <img src="screenshots/complaint.png" width="45%"/>
-</p>
+### User Dashboard
+![User Dashboard](screenshots/user_dashboard.png)
 
-> **Note:** For more screenshots and page views, check the **[`screenshots/`](screenshots)** folder.
+### Financial Management
+![Financial](screenshots/financial.png)
+
+### Complaints
+![Complaints](screenshots/complaint.png)
+
+> **Note:** For more screenshots and page views, check the [`screenshots/`](screenshots) folder.
 
 🛠 Tech Stack
+
 Backend: Django, Python
 
 Frontend: HTML, CSS, Bootstrap
