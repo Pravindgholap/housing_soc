@@ -141,6 +141,9 @@
                         <div class="navbar-nav ms-auto">
                             <span class="navbar-text">
                                 <i class="fas fa-home me-1"></i> {{ user.full_address }}
+                                {% if user.society %}
+                                <small class="text-muted d-block">{{ user.society.name }}</small>
+                                {% endif %}
                             </span>
                         </div>
                     </div>
@@ -150,6 +153,15 @@
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {% if message.tags == 'error' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% elif message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                            {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {% elif message.tags == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% endif %}
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>

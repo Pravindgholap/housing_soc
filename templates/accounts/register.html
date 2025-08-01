@@ -88,6 +88,9 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.user_type.id_for_label }}" class="form-label">User Type</label>
                                     {{ form.user_type }}
+                                    {% if form.user_type.help_text %}
+                                    <small class="form-text text-muted">{{ form.user_type.help_text }}</small>
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
@@ -109,12 +112,22 @@
                             <div class="mb-3">
                                 <label for="{{ form.society.id_for_label }}" class="form-label">Society</label>
                                 {{ form.society }}
+                                {% if form.society.help_text %}
+                                <small class="form-text text-muted">{{ form.society.help_text }}</small>
+                                {% endif %}
                             </div>
                             
                             <div class="mb-4">
                                 <label for="{{ form.emergency_contact.id_for_label }}" class="form-label">Emergency Contact (Optional)</label>
                                 {{ form.emergency_contact }}
                             </div>
+                            
+                            <!-- Display form errors -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
                             
                             <button type="submit" class="btn btn-primary w-100 mb-3">
                                 <i class="fas fa-user-plus me-2"></i>Create Account

@@ -4,6 +4,14 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
+{% if not user.is_verified and user.user_type != 'admin' %}
+<div class="alert alert-warning">
+    <i class="fas fa-clock me-2"></i>
+    <strong>Account Pending Approval:</strong> Your account is waiting for admin verification. 
+    You can view content but some features may be limited until approved.
+</div>
+{% endif %}
+
 <div class="row">
     <!-- Quick Stats -->
     <div class="col-md-3 mb-4">

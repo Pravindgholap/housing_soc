@@ -1,13 +1,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User
+from .models import User, Society
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     phone = forms.CharField(max_length=15, required=True)
     flat_number = forms.CharField(max_length=10, required=True)
     wing = forms.CharField(max_length=5, required=True)
-    society = forms.ModelChoiceField(queryset=None, required=True)
+    society = forms.ModelChoiceField(queryset=Society.objects.all(), required=True, empty_label="Select Society")
     emergency_contact = forms.CharField(max_length=15, required=False)
 
     class Meta:
@@ -17,10 +17,12 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from .models import Society
-        self.fields['society'].queryset = Society.objects.all()
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+        
+        # Add helpful text for user type
+        self.fields['user_type'].help_text = "Select 'Owner' if you own the flat, 'Tenant' if you rent it"
+        self.fields['society'].help_text = "Select your housing society"
 
 class CustomAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):

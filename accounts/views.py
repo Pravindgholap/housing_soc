@@ -15,9 +15,18 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, 'Registration successful! Please wait for admin approval.')
+            # Check if user needs verification
+            if user.is_verified:
+                messages.success(request, 'Registration successful! You can now access the dashboard.')
+            else:
+                messages.success(request, 'Registration successful! Please wait for admin approval before you can access all features.')
             login(request, user)
             return redirect('dashboard:home')
+        else:
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
     else:
         form = CustomUserCreationForm()
     return render(request, 'accounts/register.html', {'form': form})
